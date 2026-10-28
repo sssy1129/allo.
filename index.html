@@ -26,7 +26,7 @@
             height: 100vh;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+            font-family: 'Comic Sans MS', -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
             font-weight: bold;
             -webkit-user-select: none;
             user-select: none;
@@ -197,6 +197,17 @@
         }
         input[type="color"] {
             position: absolute; top: -10px; left: -10px; width: 60px; height: 60px; border: none;
+            -webkit-appearance: none; /* 移除 iOS 系統預設外觀 */
+            background: transparent;
+            padding: 0;
+        }
+
+        /* 針對 iOS 清除系統內建的色塊外框與間距 */
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
         }
         .reset-btn {
             color: #d9534f; border-color: #d9534f;
@@ -344,8 +355,8 @@
                 </div>
                 <div class="setting-row">
                     <span>
-                        <span class="en-text">Line & Text Color</span>
-                        <span class="zh-text">線條與文字顏色</span>
+                        <span class="en-text">Text & Accent Color</span>
+                        <span class="zh-text">文字與重點色</span>
                     </span>
                     <div class="color-picker-wrapper hand-drawn">
                         <input type="color" id="textColorPicker" onchange="updateColors()">
@@ -354,8 +365,8 @@
             </div>
 
             <button class="hand-drawn-btn reset-btn" onclick="requestReset()">
-                <span class="en-text">Reset All Data</span>
-                <span class="zh-text">刪除所有紀錄</span>
+                <span class="en-text">RESET ALL DATA</span>
+                <span class="zh-text">重置所有紀錄</span>
             </button>
 
             <div class="footer-credit">
