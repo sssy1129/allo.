@@ -753,7 +753,7 @@
                 const allocated = getBankAllocatedTotal(bank);
                 // 防呆機制：領出的錢不能讓總資產低於「已經分配給子帳戶」的錢
                 if (bank.totalAssets - amount < allocated) {
-                    showMessage(appData.settings.lang === 'zh' ? '無法領出！剩餘總資產不能低於已分配給子帳戶的金額。' : 'Cannot withdraw! Remaining assets cannot be lower than allocated funds.');
+                    showMessage(appData.settings.lang === 'zh' ? '無法-$！剩餘總資產不能低於已分配給子帳戶的金額。' : 'Cannot -$! Remaining assets cannot be lower than allocated funds.');
                     return;
                 }
                 bank.totalAssets -= amount;
