@@ -558,6 +558,10 @@
             </div>
             <div id="tracker-suggestion" style="text-align:center; font-size:0.95rem; margin-bottom:15px; font-weight:bold; display:none;">
             </div>
+            <button id="btn-convert-allo" class="hand-drawn-btn" style="width: 100%; margin-bottom: 15px; display: none;" onclick="convertToAllo()">
+                <span class="en-text">Convert to allo.</span>
+                <span class="zh-text">轉換為 allo.</span>
+            </button>
             <div class="modal-actions">
                 <button class="hand-drawn-btn" onclick="openSubTransaction('deposit')">
                     +$
@@ -1023,34 +1027,59 @@
             document.getElementById('action-sub-name').innerText = sub.name;
             document.getElementById('action-sub-balance').innerText = sub.balance.toLocaleString();
             
-            // --- 智慧計算：追蹤器的專屬提示 ---
+            // --- 智慧計算：追蹤器的專屬提示與轉換按鈕 ---
             const suggestionDiv = document.getElementById('tracker-suggestion');
+            const convertBtn = document.getElementById('btn-convert-allo');
+            
             if (sub.type === 'tracker') {
                 const daysPassed = Math.floor((Date.now() - sub.createdAt) / (1000 * 60 * 60 * 24));
                 const daysLeft = sub.totalDays - daysPassed;
-                
-                // 換算剩餘月數 (至少算1個月，避免除以零錯誤)
                 const monthsLeft = Math.max(1, Math.ceil(daysLeft / 30)); 
                 const remainingAmount = sub.targetAmount - sub.balance;
                 
                 if (remainingAmount <= 0) {
-                    suggestionDiv.innerText = appData.settings.lang === 'zh' ? '🎉 目標已達成！' : '🎉 Target Reached!';
-                    suggestionDiv.style.color = 'var(--text-color)';
+                    // 目標達成：隱藏文字，顯示轉換按鈕
+                    suggestionDiv.style.display = 'none';
+                    convertBtn.style.display = 'block';
                 } else {
-                    // 無條件進入法計算建議金額
+                    // 目標未達成：顯示建議存錢金額，隱藏轉換按鈕
                     const suggestAmount = Math.ceil(remainingAmount / monthsLeft);
                     suggestionDiv.innerText = appData.settings.lang === 'zh' ? `建議每月存入：$${suggestAmount.toLocaleString()}` : `Suggested monthly: $${suggestAmount.toLocaleString()}`;
                     suggestionDiv.style.color = 'var(--text-color)';
+                    suggestionDiv.style.display = 'block';
+                    convertBtn.style.display = 'none';
                 }
-                suggestionDiv.style.display = 'block';
             } else {
-                suggestionDiv.style.display = 'none'; // 一般子帳戶隱藏提示
+                // 一般子帳戶：全部隱藏
+                suggestionDiv.style.display = 'none';
+                convertBtn.style.display = 'none';
             }
 
             openModal('modal-sub-action');
         }
 
         let currentSubAction = ''; // 記錄子帳戶目前是存錢還是領錢
+
+        // 轉換追蹤器為一般子帳戶
+        function convertToAllo() {
+            const bank = appData.banks.find(b => b.id === currentBankId);
+            const sub = bank.subAccounts.find(s => s.id === currentSubAccountId);
+            
+            // 拔除追蹤器專屬的屬性，讓它徹底變回一般 allo.
+            delete sub.type;
+            delete sub.targetAmount;
+            delete sub.createdAt;
+            delete sub.totalDays;
+            
+            saveData();
+            closeModal('modal-sub-action');
+            renderSubAccounts(); // 重新渲染畫面，長條形會瞬間變成正方形
+            
+            // 彈出提示讓使用者知道轉換成功
+            setTimeout(() => {
+                showMessage(appData.settings.lang === 'zh' ? '已成功轉換為 allo.！' : 'Converted to allo. successfully!');
+            }, 300); // 稍微延遲，確保畫面過渡自然
+        }
 
         // 打開子帳戶存領錢視窗
         function openSubTransaction(type) {
