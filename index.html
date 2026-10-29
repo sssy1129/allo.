@@ -86,7 +86,7 @@
         /* 視圖容器 */
         .view-wrapper {
             position: relative;
-            height: calc(100vh - 70px - env(safe-area-inset-bottom));
+            height: 100vh;
             width: 100vw;
             overflow: hidden;
         }
@@ -296,11 +296,17 @@
         <!-- bank list -->
         <div id="view-main" class="view active-view">
             <div class="header-bar">
-                <div class="header-title">
+                <div style="flex: 1;"></div>                
+                <!-- 中間標題自然置中 -->
+                <div class="header-title" style="text-align: center;">
                     <span class="en-text">My Banks</span>
                     <span class="zh-text">我的銀行</span>
                 </div>
-                <button class="hand-drawn-btn add-btn" style="border: none; background: transparent;" onclick="openModal('modal-add-bank')">+</button>
+                
+                <!-- 右側改用 flex-end 強制將按鈕推到最右邊 -->
+                <div style="flex: 1; display: flex; justify-content: flex-end;">
+                    <button class="hand-drawn-btn add-btn" style="border: none; background: transparent; padding-right: 0;" onclick="switchView('settings')">⚙️</button>
+                </div>
             </div>
             <div class="bank-list" id="bank-list-container">
                 <!-- 銀行圖示動態產生 -->
@@ -367,10 +373,16 @@
         <!-- setting -->
         <div id="view-settings" class="view">
             <div class="header-bar">
-                <div class="header-title">
+                <div style="flex: 1; text-align: left;">
+                    <button class="hand-drawn-btn back-btn" style="border: none; background: transparent; padding-left: 0;" onclick="switchView('main')">
+                        ❮
+                    </button>
+                </div>
+                <div class="header-title" style="text-align: center;">
                     <span class="en-text">Settings</span>
                     <span class="zh-text">設定</span>
                 </div>
+                <div style="flex: 1;"></div>
             </div>
 
             <div class="hand-drawn" style="padding: 10px;">
@@ -413,12 +425,6 @@
                 Designed by LynnL2001
             </div>
         </div>
-    </div>
-
-    <!-- bottom -->
-    <div class="bottom-nav">
-        <button class="nav-tab active" id="tab-main" onclick="switchView('main')">💰</button>
-        <button class="nav-tab" id="tab-settings" onclick="switchView('settings')">⚙️</button>
     </div>
 
     <!-- ================= windows ================= -->
@@ -715,14 +721,8 @@
         // --- 視圖切換 ---
         function switchView(viewName) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            
             document.getElementById(`view-${viewName}`).classList.add('active-view');
             
-            if(viewName === 'main' || viewName === 'settings') {
-                document.getElementById(`tab-${viewName}`).classList.add('active');
-            }
-
             if (viewName === 'main') {
                 renderMain();
                 currentBankId = null;
@@ -737,7 +737,7 @@
             appData.banks.forEach(bank => {
                 const div = document.createElement('div');
                 div.className = 'bank-item';
-                div.dataset.id = bank.id; // 加入 data-id 讓系統在拖曳時能辨識是哪家銀行
+                div.dataset.id = bank.id;
                 div.onclick = () => openBank(bank.id);
                 div.innerHTML = `
                     <div class="bank-icon">🏦</div>
@@ -746,6 +746,15 @@
                 container.appendChild(div);
             });
 
+            // 在列表尾端放上「新增銀行」的圖示按鈕
+            const addDiv = document.createElement('div');
+            addDiv.className = 'bank-item add-bank-btn';
+            addDiv.onclick = () => openModal('modal-add-bank');
+            addDiv.innerHTML = `
+                <div class="bank-icon" style="opacity: 0.5; font-size: 2.2rem; margin-top: 8px;">+</div>
+            `;
+            container.appendChild(addDiv);
+
             // 初始化或更新銀行列表的 SortableJS 拖曳功能
             if (bankSortableInstance) {
                 bankSortableInstance.destroy();
@@ -753,11 +762,16 @@
             bankSortableInstance = new Sortable(container, {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
+                filter: '.add-bank-btn', // 防止新增按鈕被拖曳
                 onEnd: function (evt) {
-                    // 拖曳放開後，更新資料庫裡的銀行順序
-                    const item = appData.banks.splice(evt.oldIndex, 1)[0];
-                    appData.banks.splice(evt.newIndex, 0, item);
-                    saveData();
+                    // 若拖曳的是銀行項目，更新陣列順序
+                    if (evt.oldIndex !== undefined && evt.newIndex !== undefined) {
+                        const item = appData.banks.splice(evt.oldIndex, 1)[0];
+                        // 確保 newIndex 不會超出實際銀行數量 (防呆：使用者硬拖到 + 號後面的情況)
+                        const newIdx = Math.min(evt.newIndex, appData.banks.length);
+                        appData.banks.splice(newIdx, 0, item);
+                        saveData();
+                    }
                 },
             });
         }
