@@ -16,8 +16,8 @@
 
     <style>
         :root {
-            --bg-color: #F5F5DC; /* 預設米色 */
-            --text-color: #4A3525; /* 預設深咖啡色 */
+            --bg-color: #F5F5DC; /* 預設背景色 */
+            --text-color: #4A3525; /* 預設字體&重點色 */
         }
 
         body {
@@ -130,7 +130,7 @@
             padding: 5px 10px;
         }
 
-        /* 銀行列表 (主畫面) */
+        /* bank list */
         .bank-list {
             display: flex;
             flex-wrap: wrap;
@@ -158,7 +158,7 @@
             word-break: break-all;
         }
 
-        /* 銀行詳細畫面 */
+        /* allo. list */
         .bank-summary {
             text-align: center;
             margin-bottom: 20px;
@@ -187,7 +187,34 @@
         .sub-balance { font-size: 1.1rem; }
         .sortable-ghost { opacity: 0.4; }
 
-        /* 設定畫面 */
+        /* trac. style */
+        .tracker-card {
+            grid-column: span 3;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 12px 15px; cursor: pointer; text-align: left;
+        }
+        .tracker-header {
+            display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
+        }
+        .tracker-name { font-weight: bold; font-size: 1rem; word-break: break-all; }
+        .tracker-time { font-size: 0.85rem; opacity: 0.8; }
+        .tracker-time.warning { color: #d9534f; font-weight: bold; opacity: 1; }
+        
+        .progress-bar-bg {
+            width: 100%; height: 14px;
+            border: 2px solid var(--text-color);
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+            background: transparent; overflow: hidden; margin-bottom: 6px;
+        }
+        .progress-bar-fill {
+            height: 100%; background-color: var(--text-color);
+            width: 0%; opacity: 0.5; transition: width 0.4s ease;
+        }
+        .tracker-amounts {
+            display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: bold;
+        }
+
+        /* setting */
         .setting-row {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px; padding: 10px;
@@ -197,7 +224,7 @@
         }
         input[type="color"] {
             position: absolute; top: -10px; left: -10px; width: 60px; height: 60px; border: none;
-            -webkit-appearance: none; /* 移除 iOS 系統預設外觀 */
+            -webkit-appearance: none;
             background: transparent;
             padding: 0;
         }
@@ -214,7 +241,7 @@
             width: 100%; margin-top: 30px; padding: 12px; font-weight: bold;
         }
 
-        /* 底部導覽列 */
+        /* bottom */
         .bottom-nav {
             position: fixed; bottom: 0; left: -10px; width: calc(100% + 20px);
             height: calc(70px + env(safe-area-inset-bottom));
@@ -233,7 +260,7 @@
         }
         .nav-tab.active { opacity: 1; transform: scale(1.1); }
 
-        /* 彈窗樣式 */
+        /* window style */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.4);
@@ -266,7 +293,7 @@
 
     <div class="view-wrapper">
         
-        <!-- 🏦 主畫面 (銀行列表) -->
+        <!-- bank list -->
         <div id="view-main" class="view active-view">
             <div class="header-bar">
                 <div class="header-title">
@@ -280,14 +307,14 @@
             </div>
         </div>
 
-        <!-- 💰 銀行詳細畫面 (子帳戶) -->
+        <!-- allo. list -->
         <div id="view-bank" class="view">
             <div class="header-bar">
                 <button class="hand-drawn-btn back-btn" style="border: none; background: transparent;" onclick="switchView('main')">
                     ❮
                 </button>
                 <div class="header-title" id="current-bank-name">Bank Name</div>
-                <div style="width: 70px;"></div> <!-- 排版平衡用 -->
+                <div style="width: 70px;"></div>
             </div>
 
             <div class="bank-summary hand-drawn">
@@ -297,7 +324,7 @@
                 </div>
                 <div class="total-assets-value" id="current-bank-assets">$0</div>
 
-                <!-- 存領錢按鈕 -->
+                <!-- +-$ button -->
                 <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
                     <button class="hand-drawn-btn" onclick="openBankTransaction('deposit')">
                         +$
@@ -314,17 +341,23 @@
                     <span class="zh-text">可用餘額：$ </span>
                     <span id="current-bank-available">0</span>
                 </div>
-                <button class="hand-drawn-btn" style="border: none; background: transparent;" onclick="openModal('modal-add-sub')">
-                    + allo.
-                </button>
+
+                <div style="display: flex; gap: 5px;">
+                    <button class="hand-drawn-btn" style="border: none; background: transparent; padding: 5px 10px;" onclick="openModal('modal-add-sub')">
+                        + allo.
+                    </button>
+                    <button class="hand-drawn-btn" style="border: none; background: transparent;" onclick="openModal('modal-add-tracker')">
+                        + trac.
+                    </button>
+                </div>
             </div>
 
             <div class="sub-account-grid" id="sub-account-grid">
-                <!-- 子帳戶卡片動態產生 -->
+                <!-- allo. 卡片動態產生 -->
             </div>
         </div>
 
-        <!-- ⚙️ 設定畫面 -->
+        <!-- setting -->
         <div id="view-settings" class="view">
             <div class="header-bar">
                 <div class="header-title">
@@ -375,15 +408,15 @@
         </div>
     </div>
 
-    <!-- 底部導覽列 -->
+    <!-- bottom -->
     <div class="bottom-nav">
-        <button class="nav-tab active" id="tab-main" onclick="switchView('main')">🏦</button>
+        <button class="nav-tab active" id="tab-main" onclick="switchView('main')">💰</button>
         <button class="nav-tab" id="tab-settings" onclick="switchView('settings')">⚙️</button>
     </div>
 
-    <!-- ================= 彈窗區 (Modals) ================= -->
+    <!-- ================= windows ================= -->
 
-    <!-- 新增銀行彈窗 -->
+    <!-- add bank -->
     <div class="modal-overlay" id="modal-add-bank">
         <div class="modal-card hand-drawn">
             <div class="modal-title">
@@ -405,7 +438,7 @@
         </div>
     </div>
 
-    <!-- 銀行存領錢彈窗 -->
+    <!-- bank +-$ -->
     <div class="modal-overlay" id="modal-bank-action">
         <div class="modal-card hand-drawn">
             <div class="modal-title" id="bank-action-title">Action</div>
@@ -423,12 +456,11 @@
         </div>
     </div>
 
-    <!-- 新增子帳戶彈窗 -->
+    <!-- + allo. -->
     <div class="modal-overlay" id="modal-add-sub">
         <div class="modal-card hand-drawn">
             <div class="modal-title">
-                <span class="en-text">Add allo.</span>
-                <span class="zh-text">新增 allo.</span>
+                + allo.
             </div>
             <input type="text" id="input-sub-name" class="hand-drawn-input" data-ph-en="Name" data-ph-zh="名稱">
             <input type="number" id="input-sub-amount" class="hand-drawn-input" data-ph-en="$$$" data-ph-zh="$$$">
@@ -445,14 +477,48 @@
         </div>
     </div>
 
-    <!-- 子帳戶操作彈窗 (存錢/領錢) -->
+    <!-- + trac. -->
+    <div class="modal-overlay" id="modal-add-tracker">
+        <div class="modal-card hand-drawn">
+            <div class="modal-title">
+                + trac.
+            </div>
+            <input type="text" id="input-tracker-name" class="hand-drawn-input" data-ph-en="Name" data-ph-zh="名稱">
+            <input type="number" id="input-tracker-target" class="hand-drawn-input" data-ph-en="$$$" data-ph-zh="$$$">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="number" id="input-tracker-time" class="hand-drawn-input" style="margin-bottom: 0;" data-ph-en="Duration" data-ph-zh="預計期間">
+                <select id="select-tracker-unit" class="hand-drawn-input" style="margin-bottom: 0; width: 80px; padding-left: 5px;">
+                    <option value="month">月</option>
+                    <option value="day">日</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="hand-drawn-btn" onclick="closeModal('modal-add-tracker')">
+                    <span class="en-text">Cancel</span>
+                    <span class="zh-text">取消</span>
+                </button>
+                <button class="hand-drawn-btn" onclick="addTracker()">
+                    <span class="en-text">Add</span>
+                    <span class="zh-text">新增</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- allo. edit -->
     <div class="modal-overlay" id="modal-sub-action">
         <div class="modal-card hand-drawn">
             <div class="sub-action-header">
                 <div class="modal-title" id="action-sub-name" onclick="requestEditName()" cursor: pointer; text-decoration: underline dashed; style="margin-bottom:0;">Name</div>
             </div>
             <div style="text-align:center; margin-bottom:15px;">
-                <span class="en-text">Current: $</span><span class="zh-text">餘額: $</span><span id="action-sub-balance">0</span>
+                <span class="en-text">Current: $</span>
+                <span class="zh-text">餘額: $</span>
+                <span id="action-sub-balance">0</span>
+            </div>
+            <div id="tracker-suggestion" style="text-align:center; font-size:0.95rem; margin-bottom:15px; font-weight:bold; display:none;">
             </div>
             <div class="modal-actions">
                 <button class="hand-drawn-btn" onclick="openSubTransaction('deposit')">
@@ -469,7 +535,38 @@
         </div>
     </div>
 
-    <!-- 子帳戶存領錢輸入視窗 -->
+    <!-- trac. edit -->
+    <div class="modal-overlay" id="modal-edit-tracker">
+        <div class="modal-card hand-drawn" style="z-index: 105;">
+            <div class="modal-title">
+                <span class="en-text">Edit trac.</span>
+                <span class="zh-text">編輯 trac.</span>
+            </div>
+            <input type="text" id="input-edit-tracker-name" class="hand-drawn-input" data-ph-en="Tracker Name" data-ph-zh="追蹤名稱">
+            <input type="number" id="input-edit-tracker-target" class="hand-drawn-input" data-ph-en="Target Amount" data-ph-zh="目標金額">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="number" id="input-edit-tracker-time" class="hand-drawn-input" style="margin-bottom: 0;" data-ph-en="Duration" data-ph-zh="預計期間">
+                <select id="select-edit-tracker-unit" class="hand-drawn-input" style="margin-bottom: 0; width: 80px; padding-left: 5px;">
+                    <option value="month">月</option>
+                    <option value="day">日</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="hand-drawn-btn" onclick="closeModal('modal-edit-tracker')">
+                    <span class="en-text">Cancel</span>
+                    <span class="zh-text">取消</span>
+                </button>
+                <button class="hand-drawn-btn" onclick="confirmEditTracker()">
+                    <span class="en-text">Save</span>
+                    <span class="zh-text">儲存</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- allo +-$ -->
     <div class="modal-overlay" id="modal-sub-transaction">
         <div class="modal-card hand-drawn">
             <div class="modal-title" id="sub-transaction-title">Action</div>
@@ -487,7 +584,7 @@
         </div>
     </div>
 
-    <!-- 編輯名稱專用彈窗 (取代 prompt) -->
+    <!-- edit name -->
     <div class="modal-overlay" id="modal-edit-name">
         <div class="modal-card hand-drawn" style="z-index: 105;">
             <div class="modal-title">
@@ -508,7 +605,7 @@
         </div>
     </div>
 
-    <!-- 通用訊息提示彈窗 (取代 alert) -->
+    <!-- notice -->
     <div class="modal-overlay" id="modal-message">
         <div class="modal-card hand-drawn" style="z-index: 110;">
             <div class="modal-title">
@@ -520,7 +617,7 @@
         </div>
     </div>
 
-    <!-- 通用確認彈窗 (取代 confirm) -->
+    <!-- confirm -->
     <div class="modal-overlay" id="modal-confirm">
         <div class="modal-card hand-drawn" style="z-index: 110;">
             <div class="modal-title">
@@ -555,6 +652,7 @@
         let currentBankId = null;
         let currentSubAccountId = null;
         let sortableInstance = null;
+        let bankSortableInstance = null;
         
         // 為了自訂 Confirm 彈窗所需要的 callback
         let confirmCallback = null;
@@ -598,12 +696,28 @@
             appData.banks.forEach(bank => {
                 const div = document.createElement('div');
                 div.className = 'bank-item';
+                div.dataset.id = bank.id; // 加入 data-id 讓系統在拖曳時能辨識是哪家銀行
                 div.onclick = () => openBank(bank.id);
                 div.innerHTML = `
                     <div class="bank-icon">🏦</div>
                     <div class="bank-name">${bank.name}</div>
                 `;
                 container.appendChild(div);
+            });
+
+            // 初始化或更新銀行列表的 SortableJS 拖曳功能
+            if (bankSortableInstance) {
+                bankSortableInstance.destroy();
+            }
+            bankSortableInstance = new Sortable(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    // 拖曳放開後，更新資料庫裡的銀行順序
+                    const item = appData.banks.splice(evt.oldIndex, 1)[0];
+                    appData.banks.splice(evt.newIndex, 0, item);
+                    saveData();
+                },
             });
         }
 
@@ -630,13 +744,57 @@
 
             bank.subAccounts.forEach(sub => {
                 const div = document.createElement('div');
-                div.className = 'sub-account-card hand-drawn';
-                div.dataset.id = sub.id; // 用於拖曳排序
+                div.dataset.id = sub.id;
                 div.onclick = () => openSubAction(sub.id);
-                div.innerHTML = `
-                    <div class="sub-name">${sub.name}</div>
-                    <div class="sub-balance">$${sub.balance.toLocaleString()}</div>
-                `;
+
+                if (sub.type === 'tracker') {
+                    // --- 渲染追蹤器 (橫跨 3 格的長條設計) ---
+                    div.className = 'tracker-card hand-drawn';
+                    
+                    // 計算進度百分比
+                    const percent = Math.min((sub.balance / sub.targetAmount) * 100, 100).toFixed(1);
+                    
+                    // 計算經過天數與剩餘天數
+                    const daysPassed = Math.floor((Date.now() - sub.createdAt) / (1000 * 60 * 60 * 24));
+                    const daysLeft = sub.totalDays - daysPassed;
+                    
+                    // 判斷是否需要紅色警告 (剩餘天數 <= 總天數的 10%，或已過期)
+                    const isWarning = daysLeft <= (sub.totalDays * 0.1) || daysLeft < 0;
+                    const timeClass = isWarning ? 'tracker-time warning' : 'tracker-time';
+                    
+                    // 根據語言與天數決定顯示文字
+                    let timeText = '';
+                    if (daysLeft < 0) {
+                        timeText = appData.settings.lang === 'zh' ? '已逾期' : 'Overdue';
+                    } else if (daysLeft > 30) {
+                        const monthsLeft = Math.ceil(daysLeft / 30);
+                        timeText = appData.settings.lang === 'zh' ? `剩 ${monthsLeft} 個月` : `${monthsLeft} mo left`;
+                    } else {
+                        timeText = appData.settings.lang === 'zh' ? `剩 ${daysLeft} 天` : `${daysLeft} d left`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="tracker-header">
+                            <div class="tracker-name">${sub.name}</div>
+                            <div class="${timeClass}">${timeText}</div>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                        </div>
+                        <div class="tracker-amounts">
+                            <span>$${sub.balance.toLocaleString()}</span>
+                            <span style="opacity:0.6">$${sub.targetAmount.toLocaleString()}</span>
+                        </div>
+                    `;
+                } else {
+                    // --- 渲染一般子帳戶 (維持原本的正方形) ---
+                    div.className = 'sub-account-card hand-drawn';
+                    div.innerHTML = `
+                        <div class="sub-name">${sub.name}</div>
+                        <div class="sub-balance">$${sub.balance.toLocaleString()}</div>
+                    `;
+                }
+                
                 container.appendChild(div);
             });
 
@@ -722,6 +880,43 @@
             renderSubAccounts();
         }
 
+        function addTracker() {
+            const bank = appData.banks.find(b => b.id === currentBankId);
+            const name = document.getElementById('input-tracker-name').value.trim();
+            const target = parseInt(document.getElementById('input-tracker-target').value);
+            const timeValue = parseInt(document.getElementById('input-tracker-time').value);
+            const timeUnit = document.getElementById('select-tracker-unit').value;
+
+            if (!name || isNaN(target) || target <= 0 || isNaN(timeValue) || timeValue <= 0) {
+                showMessage(appData.settings.lang === 'zh' ? '請輸入完整的名稱、目標金額與有效時間' : 'Please enter valid name, target, and time.');
+                return;
+            }
+
+            // 計算總天數 (簡單以 1個月 = 30天 來換算)
+            const totalDays = timeUnit === 'month' ? timeValue * 30 : timeValue;
+
+            // 存入子帳戶列表，並加上 type: 'tracker' 來做區分
+            bank.subAccounts.push({
+                id: Date.now().toString(),
+                type: 'tracker', // 專屬標籤，用來跟一般 allo. 區分
+                name: name,
+                balance: 0, // 剛建立時已存金額為 0
+                targetAmount: target,
+                createdAt: Date.now(), // 記錄建立當下的精準時間
+                totalDays: totalDays
+            });
+
+            saveData(); // 儲存資料
+            closeModal('modal-add-tracker'); // 關閉視窗
+            
+            // 清空輸入框，準備迎接下一次新增
+            document.getElementById('input-tracker-name').value = '';
+            document.getElementById('input-tracker-target').value = '';
+            document.getElementById('input-tracker-time').value = '';
+            
+            renderSubAccounts(); // 重新渲染畫面
+        }
+
         let currentBankAction = ''; // 記錄目前是存錢還是領錢
 
         // 打開銀行存領錢視窗
@@ -773,6 +968,30 @@
             document.getElementById('action-sub-name').innerText = sub.name;
             document.getElementById('action-sub-balance').innerText = sub.balance.toLocaleString();
             
+            // --- 智慧計算：追蹤器的專屬提示 ---
+            const suggestionDiv = document.getElementById('tracker-suggestion');
+            if (sub.type === 'tracker') {
+                const daysPassed = Math.floor((Date.now() - sub.createdAt) / (1000 * 60 * 60 * 24));
+                const daysLeft = sub.totalDays - daysPassed;
+                
+                // 換算剩餘月數 (至少算1個月，避免除以零錯誤)
+                const monthsLeft = Math.max(1, Math.ceil(daysLeft / 30)); 
+                const remainingAmount = sub.targetAmount - sub.balance;
+                
+                if (remainingAmount <= 0) {
+                    suggestionDiv.innerText = appData.settings.lang === 'zh' ? '🎉 目標已達成！' : '🎉 Target Reached!';
+                    suggestionDiv.style.color = 'var(--text-color)';
+                } else {
+                    // 無條件進入法計算建議金額
+                    const suggestAmount = Math.ceil(remainingAmount / monthsLeft);
+                    suggestionDiv.innerText = appData.settings.lang === 'zh' ? `建議每月存入：$${suggestAmount.toLocaleString()}` : `Suggested monthly: $${suggestAmount.toLocaleString()}`;
+                    suggestionDiv.style.color = 'var(--text-color)';
+                }
+                suggestionDiv.style.display = 'block';
+            } else {
+                suggestionDiv.style.display = 'none'; // 一般子帳戶隱藏提示
+            }
+
             openModal('modal-sub-action');
         }
 
@@ -826,30 +1045,61 @@
             closeModal('modal-sub-transaction'); // 關閉輸入視窗
         }
 
-        // --- 編輯名稱 (客製化取代 Prompt) ---
+        // --- 分流編輯功能 (一般 allo. vs 追蹤器) ---
         function requestEditName() {
             const bank = appData.banks.find(b => b.id === currentBankId);
             const sub = bank.subAccounts.find(s => s.id === currentSubAccountId);
-            document.getElementById('input-edit-name').value = sub.name;
             
-            // 隱藏下層操作視窗，打開編輯視窗
+            // 先隱藏操作視窗
             document.getElementById('modal-sub-action').classList.remove('active');
-            openModal('modal-edit-name');
+            
+            if (sub.type === 'tracker') {
+                // 如果是追蹤器，把舊資料填入並打開專屬編輯視窗
+                document.getElementById('input-edit-tracker-name').value = sub.name;
+                document.getElementById('input-edit-tracker-target').value = sub.targetAmount;
+                
+                // 簡單反推月/日單位
+                if (sub.totalDays % 30 === 0) {
+                    document.getElementById('input-edit-tracker-time').value = sub.totalDays / 30;
+                    document.getElementById('select-edit-tracker-unit').value = 'month';
+                } else {
+                    document.getElementById('input-edit-tracker-time').value = sub.totalDays;
+                    document.getElementById('select-edit-tracker-unit').value = 'day';
+                }
+                openModal('modal-edit-tracker');
+            } else {
+                // 如果是一般子帳戶，只編輯名稱
+                document.getElementById('input-edit-name').value = sub.name;
+                openModal('modal-edit-name');
+            }
         }
 
-        function confirmEditName() {
-            const newName = document.getElementById('input-edit-name').value.trim();
-            if (newName) {
-                const bank = appData.banks.find(b => b.id === currentBankId);
-                const sub = bank.subAccounts.find(s => s.id === currentSubAccountId);
-                sub.name = newName;
-                saveData();
-                renderSubAccounts();
-                document.getElementById('action-sub-name').innerText = newName;
+        // 儲存編輯後的追蹤器資料
+        function confirmEditTracker() {
+            const bank = appData.banks.find(b => b.id === currentBankId);
+            const sub = bank.subAccounts.find(s => s.id === currentSubAccountId);
+            
+            const newName = document.getElementById('input-edit-tracker-name').value.trim();
+            const newTarget = parseInt(document.getElementById('input-edit-tracker-target').value);
+            const newTimeValue = parseInt(document.getElementById('input-edit-tracker-time').value);
+            const newTimeUnit = document.getElementById('select-edit-tracker-unit').value;
+
+            if (!newName || isNaN(newTarget) || newTarget <= 0 || isNaN(newTimeValue) || newTimeValue <= 0) {
+                showMessage(appData.settings.lang === 'zh' ? '請輸入完整的資訊' : 'Please enter valid information.');
+                return;
             }
-            closeModal('modal-edit-name');
-            // 重新打開操作視窗
-            openModal('modal-sub-action');
+
+            sub.name = newName;
+            sub.targetAmount = newTarget;
+            // 若有修改時間，將以當下作為新的計時起點
+            sub.totalDays = newTimeUnit === 'month' ? newTimeValue * 30 : newTimeValue;
+            sub.createdAt = Date.now(); 
+
+            saveData();
+            renderSubAccounts();
+            
+            closeModal('modal-edit-tracker');
+            openSubAction(sub.id); // 直接重新打開操作視窗，以刷新最新的建議金額
         }
 
         // --- 設定與外觀管理 ---
