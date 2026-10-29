@@ -310,11 +310,18 @@
         <!-- allo. list -->
         <div id="view-bank" class="view">
             <div class="header-bar">
-                <button class="hand-drawn-btn back-btn" style="border: none; background: transparent;" onclick="switchView('main')">
-                    ❮
-                </button>
-                <div class="header-title" id="current-bank-name">Bank Name</div>
-                <div style="width: 70px;"></div>
+                <!-- 左側給予 flex: 1 -->
+                <div style="flex: 1; text-align: left;">
+                    <button class="hand-drawn-btn back-btn" style="border: none; background: transparent; padding-left: 0;" onclick="switchView('main')">
+                        ❮
+                    </button>
+                </div>
+                
+                <!-- 中間標題自然置中 -->
+                <div class="header-title" id="current-bank-name" onclick="requestEditBank()" style="cursor: pointer; text-align: center;">Bank Name</div>
+                
+                <!-- 右側也給予 flex: 1，確保左右佔位絕對相等 -->
+                <div style="flex: 1;"></div>
             </div>
 
             <div class="bank-summary hand-drawn">
@@ -438,6 +445,31 @@
         </div>
     </div>
 
+    <!-- edit bank -->
+    <div class="modal-overlay" id="modal-edit-bank">
+        <div class="modal-card hand-drawn" style="z-index: 105;">
+            <div class="modal-title">
+                <span class="en-text">Edit Bank</span>
+                <span class="zh-text">編輯銀行</span>
+            </div>
+            <input type="text" id="input-edit-bank-name" class="hand-drawn-input">
+            <div class="modal-actions">
+                <button class="hand-drawn-btn" onclick="closeModal('modal-edit-bank')">
+                    <span class="en-text">Cancel</span>
+                    <span class="zh-text">取消</span>
+                </button>
+                <button class="hand-drawn-btn" onclick="confirmEditBank()">
+                    <span class="en-text">Save</span>
+                    <span class="zh-text">儲存</span>
+                </button>
+            </div>
+            <button class="hand-drawn-btn" style="width: 100%; margin-top: 15px; color: #d9534f; border-color: #d9534f;" onclick="deleteBank()">
+                <span class="en-text">Delete Bank</span>
+                <span class="zh-text">刪除銀行</span>
+            </button>
+        </div>
+    </div>
+
     <!-- bank +-$ -->
     <div class="modal-overlay" id="modal-bank-action">
         <div class="modal-card hand-drawn">
@@ -507,11 +539,11 @@
         </div>
     </div>
 
-    <!-- allo. edit -->
+    <!-- edit allo. -->
     <div class="modal-overlay" id="modal-sub-action">
         <div class="modal-card hand-drawn">
             <div class="sub-action-header">
-                <div class="modal-title" id="action-sub-name" onclick="requestEditName()" cursor: pointer; text-decoration: underline dashed; style="margin-bottom:0;">Name</div>
+                <div class="modal-title" id="action-sub-name" onclick="requestEditName()" cursor: pointer; style="margin-bottom:0;">Name</div>
             </div>
             <div style="text-align:center; margin-bottom:15px;">
                 <span class="en-text">Current: $</span>
@@ -535,7 +567,7 @@
         </div>
     </div>
 
-    <!-- trac. edit -->
+    <!-- edit trac. -->
     <div class="modal-overlay" id="modal-edit-tracker">
         <div class="modal-card hand-drawn" style="z-index: 105;">
             <div class="modal-title">
@@ -563,6 +595,10 @@
                     <span class="zh-text">儲存</span>
                 </button>
             </div>
+            <button class="hand-drawn-btn" style="width: 100%; margin-top: 15px; color: #d9534f; border-color: #d9534f;" onclick="deleteSubAccount()">
+                <span class="en-text">Delete trac.</span>
+                <span class="zh-text">刪除 trac.</span>
+            </button>
         </div>
     </div>
 
@@ -584,7 +620,7 @@
         </div>
     </div>
 
-    <!-- edit name -->
+    <!-- edit allo. name -->
     <div class="modal-overlay" id="modal-edit-name">
         <div class="modal-card hand-drawn" style="z-index: 105;">
             <div class="modal-title">
@@ -602,6 +638,11 @@
                     <span class="zh-text">儲存</span>
                 </button>
             </div>
+
+            <button class="hand-drawn-btn" style="width: 100%; margin-top: 15px; color: #d9534f; border-color: #d9534f;" onclick="deleteSubAccount()">
+                <span class="en-text">Delete allo.</span>
+                <span class="zh-text">刪除 allo.</span>
+            </button>
         </div>
     </div>
 
@@ -1100,6 +1141,61 @@
             
             closeModal('modal-edit-tracker');
             openSubAction(sub.id); // 直接重新打開操作視窗，以刷新最新的建議金額
+        }
+
+        // --- 銀行編輯與刪除 ---
+        function requestEditBank() {
+            const bank = appData.banks.find(b => b.id === currentBankId);
+            document.getElementById('input-edit-bank-name').value = bank.name;
+            openModal('modal-edit-bank');
+        }
+
+        function confirmEditBank() {
+            const newName = document.getElementById('input-edit-bank-name').value.trim();
+            if (newName) {
+                const bank = appData.banks.find(b => b.id === currentBankId);
+                bank.name = newName;
+                saveData();
+                document.getElementById('current-bank-name').innerText = newName;
+                renderMain(); // 同步更新主畫面的銀行名稱
+            }
+            closeModal('modal-edit-bank');
+        }
+
+        function deleteBank() {
+            const msg = appData.settings.lang === 'zh'
+                ? '確定要刪除這間銀行嗎？<br><br><span style="color:#d9534f; font-weight:bold;">⚠️ 警告：裡面所有的 allo. 與 trac. 紀錄都會一併永久刪除！</span>'
+                : 'Are you sure?<br><br><span style="color:#d9534f; font-weight:bold;">⚠️ Warning: All allo. and trac. records inside will be permanently deleted!</span>';
+            
+            showConfirm(msg, (res) => {
+                if (res) {
+                    // 過濾掉目前這家銀行，等於把它刪除
+                    appData.banks = appData.banks.filter(b => b.id !== currentBankId);
+                    saveData();
+                    closeModal('modal-edit-bank');
+                    switchView('main'); // 刪除完自動退回首頁
+                }
+            });
+        }
+
+        // --- 子帳戶/追蹤器刪除 ---
+        function deleteSubAccount() {
+            const msg = appData.settings.lang === 'zh'
+                ? '確定要刪除嗎？'
+                : 'Are you sure you want to delete it?';
+            
+            showConfirm(msg, (res) => {
+                if (res) {
+                    const bank = appData.banks.find(b => b.id === currentBankId);
+                    // 過濾掉目前這個子帳戶，等於把它刪除
+                    bank.subAccounts = bank.subAccounts.filter(s => s.id !== currentSubAccountId);
+                    
+                    saveData();
+                    closeModal('modal-edit-name');
+                    closeModal('modal-edit-tracker');
+                    renderSubAccounts(); // 重新計算並更新剩餘可用餘額與畫面
+                }
+            });
         }
 
         // --- 設定與外觀管理 ---
