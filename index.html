@@ -894,6 +894,22 @@
             switchView('bank');
         }
 
+        function confirmEditName() {
+            const bank = appData.banks.find(b => b.id === currentBankId);
+            const sub = bank.subAccounts.find(s => s.id === currentSubAccountId);
+            const newName = document.getElementById('input-edit-name').value.trim();
+
+            if (!newName) {
+                showMessage(appData.settings.lang === 'zh' ? '請輸入有效的名稱' : 'Please enter a valid name.');
+                return;
+            }
+
+            sub.name = newName;
+            saveData();
+            renderSubAccounts();
+            closeModal('modal-edit-name');
+        }
+
         function renderSubAccounts() {
             const bank = appData.banks.find(b => b.id === currentBankId);
             const container = document.getElementById('sub-account-grid');
